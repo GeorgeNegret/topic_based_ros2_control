@@ -266,11 +266,27 @@ hardware_interface::return_type TopicBasedSystem::write(const rclcpp::Time& /*ti
 {
   // To avoid spamming TopicBased's joint command topic we check the difference between the joint states and
   // the current joint commands, if it's smaller than a threshold we don't publish it.
-  const auto diff = std::transform_reduce(
-      joint_states_[POSITION_INTERFACE_INDEX].cbegin(), joint_states_[POSITION_INTERFACE_INDEX].cend(),
-      joint_commands_[POSITION_INTERFACE_INDEX].cbegin(), 0.0,
-      [](const auto d1, const auto d2) { return std::abs(d1) + std::abs(d2); }, std::minus<double>{});
-  if (diff <= trigger_joint_command_threshold_)
+  // const auto diff = std::transform_reduce(
+  //     joint_states_[POSITION_INTERFACE_INDEX].cbegin(), joint_states_[POSITION_INTERFACE_INDEX].cend(),
+  //     joint_commands_[POSITION_INTERFACE_INDEX].cbegin(), 0.0,
+  //     [](const auto d1, const auto d2) { return std::abs(d1) + std::abs(d2); }, std::minus<double>{});
+  // if (diff <= trigger_joint_command_threshold_)
+  // {
+  //   return hardware_interface::return_type::OK;
+  // }
+  const auto position_diff = std::transform_reduce(
+    joint_states_[POSITION_INTERFACE_INDEX].cbegin(), joint_states_[POSITION_INTERFACE_INDEX].cend(),
+    joint_commands_[POSITION_INTERFACE_INDEX].cbegin(), 0.0,
+    [](const auto d1, const auto d2) { return std::abs(d1) + std::abs(d2); },
+    std::minus<double>{});
+
+  const auto velocity_diff = std::transform_reduce(
+      joint_states_[VELOCITY_INTERFACE_INDEX].cbegin(), joint_states_[VELOCITY_INTERFACE_INDEX].cend(),
+      joint_commands_[VELOCITY_INTERFACE_INDEX].cbegin(), 0.0,
+      [](const auto d1, const auto d2) { return std::abs(d1) + std::abs(d2); },
+      std::minus<double>{});
+
+  if (position_diff <= trigger_position_joint_command_threshold_ && velocity_diff <= trigger_velocity_joint_command_threshold_)
   {
     return hardware_interface::return_type::OK;
   }
