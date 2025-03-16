@@ -139,9 +139,13 @@ CallbackReturn TopicBasedSystem::on_init(const hardware_interface::HardwareInfo&
 
   node_ = rclcpp::Node::make_shared("_", options);
 
-  if (auto it = info_.hardware_parameters.find("trigger_joint_command_threshold"); it != info_.hardware_parameters.end())
+  if (auto it = info_.hardware_parameters.find("trigger_position_joint_command_threshold"); it != info_.hardware_parameters.end())
   {
-    trigger_joint_command_threshold_ = std::stod(it->second);
+    trigger_position_joint_command_threshold_ = std::stod(it->second);
+  }
+  if (auto it = info_.hardware_parameters.find("trigger_velocity_joint_command_threshold"); it != info_.hardware_parameters.end())
+  {
+    trigger_velocity_joint_command_threshold_ = std::stod(it->second);
   }
 
   topic_based_joint_commands_publisher_ = node_->create_publisher<sensor_msgs::msg::JointState>(
